@@ -25,6 +25,50 @@
   ],
   "main": "./dist/extension.js",
   "contributes": {
+    "commands": [
+      {
+        "command": "cleanx.closeGitDiffEditors",
+        "title": "Close Git Diff Editors",
+        "icon": "$(clear-all)",
+        "tooltip": "Close all Git diff editors, Working Tree, and Index editors"
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "cleanx.closeGitDiffEditors",
+          "when": "view == workbench.explorer.openEditorsView",
+          "group": "navigation"
+        },
+        {
+          "command": "cleanx.closeGitDiffEditors",
+          "when": "view == openEditors",
+          "group": "navigation"
+        }
+      ]
+    },
+    "keybindings": [
+      {
+        "command": "cleanx.closeGitDiffEditors",
+        "key": "ctrl+shift+alt+x",
+        "mac": "cmd+shift+alt+x"
+      }
+    ],
+    "configuration": {
+      "title": "CleanX",
+      "properties": {
+        "cleanx.showNotifications": {
+          "type": "boolean",
+          "default": false,
+          "description": "Show notification messages when closing Git diff editors"
+        },
+        "cleanx.confirmBeforeClosing": {
+          "type": "boolean",
+          "default": false,
+          "description": "Show confirmation dialog before closing Git diff editors"
+        }
+      }
+    }
   },
   "scripts": {
     "vscode:prepublish": "pnpm run package",
@@ -38,7 +82,7 @@
     "pretest": "pnpm run compile-tests && pnpm run compile && pnpm run lint",
     "check-types": "tsc --noEmit",
     "lint": "eslint src",
-    "test": "vscode-test"
+    "test": "vscode-test" 
   },
   "devDependencies": {
     "@types/vscode": "^1.103.0",
