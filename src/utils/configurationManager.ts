@@ -14,8 +14,10 @@ export class ConfigurationManager {
         const config = vscode.workspace.getConfiguration(this.EXTENSION_NAME);
         
         return {
-            showNotifications: config.get('showNotifications', true),
+            showNotifications: config.get('showNotifications', false),
             confirmBeforeClosing: config.get('confirmBeforeClosing', false),
+            sortAfterClosing: config.get('sortAfterClosing', false),
+            customFileTypeOrder: config.get('customFileTypeOrder', []),
         };
     }
 

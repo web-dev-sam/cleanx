@@ -1,6 +1,8 @@
 import * as vscode from 'vscode';
 import { GitDiffEditorService } from '../services/gitDiffEditorService';
+import { TabSortingService } from '../services/tabSortingService';
 import { CloseGitDiffEditorsCommand } from '../commands/closeGitDiffEditors';
+import { SortTabsCommand } from '../commands/sortTabs';
 import { ConfigurationManager } from '../utils/configurationManager';
 import { Logger } from '../utils/logger';
 
@@ -9,12 +11,16 @@ import { Logger } from '../utils/logger';
  */
 export class ExtensionManager {
     private gitDiffService: GitDiffEditorService;
+    private sortingService: TabSortingService;
     private closeCommand: CloseGitDiffEditorsCommand;
+    private sortCommand: SortTabsCommand;
     private configWatcher?: vscode.Disposable;
 
     constructor(private readonly context: vscode.ExtensionContext) {
         this.gitDiffService = new GitDiffEditorService();
-        this.closeCommand = new CloseGitDiffEditorsCommand(this.gitDiffService);
+        this.sortingService = new TabSortingService();
+                this.closeCommand = new CloseGitDiffEditorsCommand(this.gitDiffService);
+        this.sortCommand = new SortTabsCommand(this.sortingService);
     }
 
     /**
@@ -26,6 +32,7 @@ export class ExtensionManager {
 
             // Register commands
             this.closeCommand.register(this.context);
+            this.sortCommand.register(this.context);
 
             // Watch for configuration changes
             this.setupConfigurationWatcher();

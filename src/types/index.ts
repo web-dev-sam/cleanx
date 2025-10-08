@@ -6,6 +6,8 @@ import * as vscode from 'vscode';
 export interface ExtensionConfig {
     showNotifications: boolean;
     confirmBeforeClosing: boolean;
+    sortAfterClosing: boolean;
+    customFileTypeOrder: string[];
 }
 
 /**

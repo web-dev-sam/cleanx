@@ -1,7 +1,7 @@
 {
   "name": "cleanx",
   "displayName": "CleanX",
-  "description": "A clean VS Code extension template",
+  "description": "A VSCode extension to close all Git diff editors, Working Tree, and Index editors at once. Optionally sorts remaining tabs by file type.",
   "publisher": "webry",
   "repository": {
     "type": "git",
@@ -13,7 +13,7 @@
     "url": "https://webry.com"
   },
   "icon": "./images/icon.png",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "engines": {
     "vscode": "^1.103.0"
   },
@@ -31,6 +31,12 @@
         "title": "Close Git Diff Editors",
         "icon": "$(clear-all)",
         "tooltip": "Close all Git diff editors, Working Tree, and Index editors"
+      },
+      {
+        "command": "cleanx.sortTabs",
+        "title": "Sort Tabs",
+        "icon": "$(sort-precedence)",
+        "tooltip": "Sort all open tabs by file type and alphabetically"
       }
     ],
     "menus": {
@@ -43,6 +49,16 @@
         {
           "command": "cleanx.closeGitDiffEditors",
           "when": "view == openEditors",
+          "group": "navigation"
+        },
+        {
+          "command": "cleanx.sortTabs",
+          "when": "view == workbench.explorer.openEditorsView && config.cleanx.showSortButton",
+          "group": "navigation"
+        },
+        {
+          "command": "cleanx.sortTabs",
+          "when": "view == openEditors && config.cleanx.showSortButton",
           "group": "navigation"
         }
       ]
@@ -66,6 +82,24 @@
           "type": "boolean",
           "default": false,
           "description": "Show confirmation dialog before closing Git diff editors"
+        },
+        "cleanx.sortAfterClosing": {
+          "type": "boolean",
+          "default": false,
+          "description": "Sort remaining tabs after closing Git diff editors"
+        },
+        "cleanx.customFileTypeOrder": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "description": "Custom order for file extensions when sorting (e.g., ['ts', 'js', 'html', 'css']). If empty, sorts alphabetically by extension."
+        },
+        "cleanx.showSortButton": {
+          "type": "boolean",
+          "default": false,
+          "description": "Show the sort tabs button in the Open Editors panel"
         }
       }
     }
