@@ -1,8 +1,11 @@
 import * as vscode from 'vscode';
 import { GitDiffEditorService } from '../services/gitDiffEditorService';
 import { TabSortingService } from '../services/tabSortingService';
+import { TabWorkspaceService } from '../services/tabWorkspaceService';
 import { CloseGitDiffEditorsCommand } from '../commands/closeGitDiffEditors';
 import { SortTabsCommand } from '../commands/sortTabs';
+import { SaveTabWorkspaceCommand } from '../commands/saveTabWorkspace';
+import { LoadTabWorkspaceCommand } from '../commands/loadTabWorkspace';
 import { ConfigurationManager } from '../utils/configurationManager';
 import { Logger } from '../utils/logger';
 
@@ -12,15 +15,21 @@ import { Logger } from '../utils/logger';
 export class ExtensionManager {
     private gitDiffService: GitDiffEditorService;
     private sortingService: TabSortingService;
+    private workspaceService: TabWorkspaceService;
     private closeCommand: CloseGitDiffEditorsCommand;
     private sortCommand: SortTabsCommand;
+    private saveWorkspaceCommand: SaveTabWorkspaceCommand;
+    private loadWorkspaceCommand: LoadTabWorkspaceCommand;
     private configWatcher?: vscode.Disposable;
 
     constructor(private readonly context: vscode.ExtensionContext) {
         this.gitDiffService = new GitDiffEditorService();
         this.sortingService = new TabSortingService();
-                this.closeCommand = new CloseGitDiffEditorsCommand(this.gitDiffService);
+        this.workspaceService = new TabWorkspaceService(context);
+        this.closeCommand = new CloseGitDiffEditorsCommand(this.gitDiffService);
         this.sortCommand = new SortTabsCommand(this.sortingService);
+        this.saveWorkspaceCommand = new SaveTabWorkspaceCommand(this.workspaceService);
+        this.loadWorkspaceCommand = new LoadTabWorkspaceCommand(this.workspaceService);
     }
 
     /**
@@ -33,12 +42,14 @@ export class ExtensionManager {
             // Register commands
             this.closeCommand.register(this.context);
             this.sortCommand.register(this.context);
+            this.saveWorkspaceCommand.register(this.context);
+            this.loadWorkspaceCommand.register(this.context);
 
             // Watch for configuration changes
             this.setupConfigurationWatcher();
 
-            // Add status bar indicator (optional)
-            this.setupStatusBarItem();
+            // Add workspace status bar indicator
+            this.setupWorkspaceStatusBarItem();
         } catch (error) {
             Logger.error('Failed to activate CleanX extension', error);
             throw error;
@@ -65,31 +76,35 @@ export class ExtensionManager {
     }
 
     /**
-     * Set up optional status bar item showing count of Git diff editors
+     * Set up status bar item showing current workspace name
      */
-    private setupStatusBarItem(): void {
+    private setupWorkspaceStatusBarItem(): void {
         const statusBarItem = vscode.window.createStatusBarItem(
             vscode.StatusBarAlignment.Right,
-            100
+            99 // Just left of the git diff counter
         );
 
-        statusBarItem.command = 'cleanx.closeGitDiffEditors';
-        statusBarItem.tooltip = 'Click to close all Git diff editors';
+        statusBarItem.command = 'cleanx.loadTabWorkspace';
+        statusBarItem.tooltip = 'Click to manage tab workspaces';
 
-        // Update status bar when tabs change
+        // Update status bar when workspace changes
         const updateStatusBar = () => {
-            const count = this.gitDiffService.getGitDiffEditorCount();
-            if (count > 0) {
-                statusBarItem.text = `$(diff) ${count}`;
+            const currentWorkspace = this.workspaceService.getCurrentWorkspaceName();
+            if (currentWorkspace) {
+                statusBarItem.text = `$(folder-active) ${currentWorkspace}`;
                 statusBarItem.show();
             } else {
                 statusBarItem.hide();
             }
         };
 
-        // Watch for tab changes
+        // Watch for tab changes that might affect workspace state
         const tabChangeWatcher = vscode.window.tabGroups.onDidChangeTabs(updateStatusBar);
         const tabGroupChangeWatcher = vscode.window.tabGroups.onDidChangeTabGroups(updateStatusBar);
+
+        // Update when workspace is loaded/saved
+        // We'll update this more frequently to catch workspace changes quickly
+        const workspaceUpdateInterval = setInterval(updateStatusBar, 800);
 
         // Initial update
         updateStatusBar();
@@ -98,9 +113,9 @@ export class ExtensionManager {
         this.context.subscriptions.push(
             statusBarItem,
             tabChangeWatcher,
-            tabGroupChangeWatcher
+            tabGroupChangeWatcher,
+            { dispose: () => clearInterval(workspaceUpdateInterval) }
         );
     }
-
 
 }

@@ -1,7 +1,7 @@
 {
   "name": "cleanx",
   "displayName": "CleanX",
-  "description": "A VSCode extension to close all Git diff editors, Working Tree, and Index editors at once. Optionally sorts remaining tabs by file type.",
+  "description": "A VSCode extension to manage tabs efficiently: close Git diff editors, sort tabs, and save/load tab workspaces.",
   "publisher": "webry",
   "repository": {
     "type": "git",
@@ -13,7 +13,7 @@
     "url": "https://webry.com"
   },
   "icon": "./images/icon.png",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "engines": {
     "vscode": "^1.103.0"
   },
@@ -28,15 +28,27 @@
     "commands": [
       {
         "command": "cleanx.closeGitDiffEditors",
-        "title": "Close Git Diff Editors",
+        "title": "CleanX: Close Git Diff Editors",
         "icon": "$(clear-all)",
         "tooltip": "Close all Git diff editors, Working Tree, and Index editors"
       },
       {
         "command": "cleanx.sortTabs",
-        "title": "Sort Tabs",
+        "title": "CleanX: Sort Tabs",
         "icon": "$(sort-precedence)",
         "tooltip": "Sort all open tabs by file type and alphabetically"
+      },
+      {
+        "command": "cleanx.saveTabWorkspace",
+        "title": "CleanX: Save Tab Workspace",
+        "icon": "$(save)",
+        "tooltip": "Save current open tabs as a named workspace"
+      },
+      {
+        "command": "cleanx.loadTabWorkspace",
+        "title": "CleanX: Tab Workspaces",
+        "icon": "$(folder-opened)",
+        "tooltip": "Manage tab workspaces: load, create, delete, and rename"
       }
     ],
     "menus": {
@@ -59,6 +71,26 @@
         {
           "command": "cleanx.sortTabs",
           "when": "view == openEditors && config.cleanx.showSortButton",
+          "group": "navigation"
+        },
+        {
+          "command": "cleanx.saveTabWorkspace",
+          "when": "view == workbench.explorer.openEditorsView && config.cleanx.showWorkspaceButtons",
+          "group": "navigation"
+        },
+        {
+          "command": "cleanx.saveTabWorkspace",
+          "when": "view == openEditors && config.cleanx.showWorkspaceButtons",
+          "group": "navigation"
+        },
+        {
+          "command": "cleanx.loadTabWorkspace",
+          "when": "view == workbench.explorer.openEditorsView && config.cleanx.showWorkspaceButtons",
+          "group": "navigation"
+        },
+        {
+          "command": "cleanx.loadTabWorkspace",
+          "when": "view == openEditors && config.cleanx.showWorkspaceButtons",
           "group": "navigation"
         }
       ]
@@ -100,6 +132,11 @@
           "type": "boolean",
           "default": false,
           "description": "Show the sort tabs button in the Open Editors panel"
+        },
+        "cleanx.showWorkspaceButtons": {
+          "type": "boolean",
+          "default": false,
+          "description": "Show the tab workspace buttons (save/load) in the Open Editors panel"
         }
       }
     }

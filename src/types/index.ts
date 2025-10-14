@@ -28,3 +28,36 @@ export interface ExtensionContextWrapper {
     
     registerDisposable(disposable: vscode.Disposable): void;
 }
+
+/**
+ * Represents a saved tab workspace with all open file paths
+ */
+export interface TabWorkspace {
+    name: string;
+    tabs: string[]; // Array of file paths (URI strings)
+    createdAt: Date;
+    lastModified: Date;
+}
+
+/**
+ * Extension state for managing tab workspaces
+ */
+export interface TabWorkspaceState {
+    workspaces: TabWorkspace[];
+    currentWorkspace?: string; // Name of the currently active workspace
+    previousWorkspace?: TabWorkspace; // Auto-saved workspace before loading new one
+}
+
+/**
+ * Information about a tab for workspace operations
+ */
+export interface TabInfo {
+    uri?: vscode.Uri;
+    originalUri?: vscode.Uri;
+    modifiedUri?: vscode.Uri;
+    viewType?: string;
+    isActive: boolean;
+    isPinned: boolean;
+    label: string;
+    viewColumn: vscode.ViewColumn;
+}

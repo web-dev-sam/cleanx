@@ -1,16 +1,22 @@
 import * as vscode from 'vscode';
+import { GitignoreService } from './gitignoreService';
 
 /**
- * Service responsible for identifying and managing Git diff editors
+ * Service responsible for identifying and managing Git diff editors and git-related files
  */
 export class GitDiffEditorService {
+    private gitignoreService: GitignoreService;
+
+    constructor() {
+        this.gitignoreService = new GitignoreService();
+    }
     
     /**
-     * Close all Git-related editors (Working Tree, Index, and diff editors)
+     * Close all Git-related editors (Working Tree, Index, diff editors, gitignored files, .git/ files)
      * @returns The number of editors that were closed
      */
     public async closeAllGitDiffEditors(): Promise<number> {
-        const gitRelatedTabs = this.findGitDiffTabs();
+        const gitRelatedTabs = await this.findGitDiffTabs();
         
         if (gitRelatedTabs.length === 0) {
             return 0;
@@ -23,22 +29,63 @@ export class GitDiffEditorService {
     }
 
     /**
-     * Find all tabs that represent Git-related editors (diff editors, Index files, Working Tree files)
+     * Find all tabs that represent Git-related editors (diff editors, Index files, Working Tree files, gitignored files, .git/ files)
      * @returns Array of tabs that are Git-related editors
      */
-    private findGitDiffTabs(): vscode.Tab[] {
+    private async findGitDiffTabs(): Promise<vscode.Tab[]> {
         const gitRelatedTabs: vscode.Tab[] = [];
 
         // Iterate through all tab groups and their tabs
         for (const tabGroup of vscode.window.tabGroups.all) {
             for (const tab of tabGroup.tabs) {
-                if (this.isGitDiffEditor(tab)) {
+                if (await this.isGitRelatedTab(tab)) {
                     gitRelatedTabs.push(tab);
                 }
             }
         }
 
         return gitRelatedTabs;
+    }
+
+    /**
+     * Determine if a tab represents a Git-related file that should be closed
+     * @param tab The tab to check
+     * @returns True if the tab should be closed (Git diff, gitignored file, or .git/ file)
+     */
+    private async isGitRelatedTab(tab: vscode.Tab): Promise<boolean> {
+        // First check if it's a traditional Git diff editor
+        if (this.isGitDiffEditor(tab)) {
+            return true;
+        }
+
+        // Check if it's a regular file that should be closed (gitignored or .git/ file)
+        if (tab.input instanceof vscode.TabInputText) {
+            const uri = tab.input.uri;
+            
+            if (uri.scheme === 'file') {
+                const filePath = uri.fsPath;
+                
+                // Check if file is in .git/ directory
+                if (this.isInGitDirectory(filePath)) {
+                    return true;
+                }
+                
+                // Check if file is gitignored
+                if (await this.gitignoreService.isIgnored(filePath)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Check if a file path is within a .git directory
+     */
+    private isInGitDirectory(filePath: string): boolean {
+        const normalizedPath = filePath.replace(/\\/g, '/');
+        return normalizedPath.includes('/.git/') || normalizedPath.endsWith('/.git');
     }
 
     /**
@@ -230,7 +277,8 @@ export class GitDiffEditorService {
      * Get count of currently open Git-related editors
      * @returns Number of open Git-related editors
      */
-    public getGitDiffEditorCount(): number {
-        return this.findGitDiffTabs().length;
+    public async getGitDiffEditorCount(): Promise<number> {
+        const tabs = await this.findGitDiffTabs();
+        return tabs.length;
     }
 }

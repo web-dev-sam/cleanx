@@ -37,7 +37,7 @@ export class CloseGitDiffEditorsCommand {
             
             // Check if we should confirm before closing
             if (config.confirmBeforeClosing) {
-                const gitDiffCount = this.gitDiffService.getGitDiffEditorCount();
+                const gitDiffCount = await this.gitDiffService.getGitDiffEditorCount();
                 if (gitDiffCount === 0) {
                     if (config.showNotifications) {
                         vscode.window.showInformationMessage('No Git-related editors found to close');
